@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PidSimulator.App/PidSimulator.App.csproj" />
+    <Project Path="src/PidSimulator.Config/PidSimulator.Config.csproj" />
+    <Project Path="src/PidSimulator.Core/PidSimulator.Core.csproj" />
+    <Project Path="src/PidSimulator.Engine/PidSimulator.Engine.csproj" />
+    <Project Path="src/PidSimulator.Modbus/PidSimulator.Modbus.csproj" />
+    <Project Path="src/PidSimulator.ViewModels/PidSimulator.ViewModels.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PidSimulator.Tests/PidSimulator.Tests.csproj" />
+  </Folder>
+</Solution>

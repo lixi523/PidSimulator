@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PidSimulator.Core\PidSimulator.Core.csproj" />
+    <ProjectReference Include="..\PidSimulator.Engine\PidSimulator.Engine.csproj" />
+    <ProjectReference Include="..\PidSimulator.Modbus\PidSimulator.Modbus.csproj" />
+    <ProjectReference Include="..\PidSimulator.Config\PidSimulator.Config.csproj" />
+    <ProjectReference Include="..\PidSimulator.ViewModels\PidSimulator.ViewModels.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>PidSimulator.App</RootNamespace>
+    <AssemblyName>PidSimulator</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,18 @@
+# 构建产物
+bin/
+obj/
+
+# 发布产物
+publish/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# 会话附件
+.loomy-attachments/

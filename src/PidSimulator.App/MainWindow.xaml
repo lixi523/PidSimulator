@@ -1,0 +1,181 @@
+﻿<Window x:Class="PidSimulator.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PID 模拟器" Height="720" Width="1180"
+        Background="#1E1E2E" Foreground="#E6E6EF"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <SolidColorBrush x:Key="Card" Color="#26263A"/>
+        <SolidColorBrush x:Key="Accent" Color="#4A9EFF"/>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E6E6EF"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#12121C"/>
+            <Setter Property="Foreground" Value="#E6E6EF"/>
+            <Setter Property="CaretBrush" Value="#E6E6EF"/>
+            <Setter Property="BorderBrush" Value="#3A3A52"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Margin" Value="0,2,0,8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#2E2E44"/>
+            <Setter Property="Foreground" Value="#E6E6EF"/>
+            <Setter Property="BorderBrush" Value="#3A3A52"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,4,6,0"/>
+        </Style>
+        <Style TargetType="ToggleButton">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,4,6,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部状态栏 -->
+        <Border Grid.Row="0" Background="{StaticResource Card}" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
+            <DockPanel>
+                <TextBlock Text="PID 模拟器" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource Accent}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="运行状态：" Foreground="#9AA0B5" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding RunButtonText}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="模式：" Foreground="#9AA0B5" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ModeText}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ModbusStatusText}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 主体 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：参数设置 -->
+            <Border Grid.Column="0" Background="{StaticResource Card}" CornerRadius="8" Padding="12" Margin="0,0,10,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="参数设置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <TextBlock Text="SP 设定值 (4001)" Foreground="#9AA0B5"/>
+                        <TextBox Text="{Binding SP, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="P 比例增益 (4005)" Foreground="#9AA0B5"/>
+                        <TextBox Text="{Binding P, StringFormat=F3, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="I 积分时间 s (4007)" Foreground="#9AA0B5"/>
+                        <TextBox Text="{Binding I, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="D 微分时间 s (4009)" Foreground="#9AA0B5"/>
+                        <TextBox Text="{Binding D, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="OP 输出 % (4003)" Foreground="#9AA0B5"/>
+                        <TextBox Text="{Binding OP, StringFormat=F2, Mode=OneWay}" IsReadOnly="True"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <ToggleButton Content="{Binding ModeText}" IsChecked="{Binding IsAuto, Mode=TwoWay}" Width="100"/>
+                            <Button Content="{Binding RunButtonText}" Command="{Binding ToggleRunCommand}" Width="100"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="恢复默认" Command="{Binding ResetParamsCommand}" Width="100"/>
+                            <Button Content="保存配置" Command="{Binding SaveConfigCommand}" Width="100"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="清空趋势" Command="{Binding ClearTrendCommand}" Width="100"/>
+                            <Button Content="清空日志" Command="{Binding ClearLogsCommand}" Width="100"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- 右：趋势 + 读数 -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{StaticResource Card}" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="实时趋势（PV 蓝 / SP 橙 / OP 绿）" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                        <Canvas x:Name="TrendCanvas" ClipToBounds="True" Background="#12121C">
+                            <Polyline x:Name="SpLine" Stroke="#FFA23E" StrokeThickness="1.5"/>
+                            <Polyline x:Name="OpLine" Stroke="#46D07A" StrokeThickness="1.5"/>
+                            <Polyline x:Name="PvLine" Stroke="#4A9EFF" StrokeThickness="1.8"/>
+                        </Canvas>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Row="1" Background="{StaticResource Card}" CornerRadius="8" Padding="12">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel Margin="0,0,48,0">
+                            <TextBlock Text="PV 过程值 (4011)" Foreground="#9AA0B5"/>
+                            <TextBlock Text="{Binding PV, StringFormat=F2}" FontSize="32" FontFamily="Consolas" Foreground="#4A9EFF"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,48,0">
+                            <TextBlock Text="OP 输出 % (4003)" Foreground="#9AA0B5"/>
+                            <TextBlock Text="{Binding OP, StringFormat=F2}" FontSize="32" FontFamily="Consolas" Foreground="#46D07A"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="SP 设定值 (4001)" Foreground="#9AA0B5"/>
+                            <TextBlock Text="{Binding SP, StringFormat=F2}" FontSize="32" FontFamily="Consolas" Foreground="#FFA23E"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- 底部：模型 + 日志 -->
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource Card}" CornerRadius="8" Padding="12" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="过程模型 FOPDT" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.3*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="K 增益" Foreground="#9AA0B5"/>
+                            <TextBox Text="{Binding K, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                            <TextBlock Text="τ 时间常数(s)" Foreground="#9AA0B5"/>
+                            <TextBox Text="{Binding Tau, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                            <TextBlock Text="θ 纯滞后(s)" Foreground="#9AA0B5"/>
+                            <TextBox Text="{Binding Theta, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="3">
+                            <TextBlock Text="扫描周期(ms)" Foreground="#9AA0B5"/>
+                            <TextBox Text="{Binding ScanPeriodMs, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="{StaticResource Card}" CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <TextBlock Text="Modbus 日志" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <ListBox x:Name="LogList" ItemsSource="{Binding Logs}"
+                             Background="#12121C" Foreground="#B8BCCB" BorderBrush="#3A3A52"
+                             Margin="0,6,0,0" FontFamily="Consolas" FontSize="11" Height="110"/>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
