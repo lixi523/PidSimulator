@@ -201,4 +201,4 @@ dotnet publish src/PidSimulator.App/PidSimulator.App.csproj `
 
 ## 许可
 
-内部演示项目，未附开源许可。
+本项目采用 [MIT License](LICENSE) 授权。
